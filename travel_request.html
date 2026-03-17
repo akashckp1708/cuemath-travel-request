@@ -1,0 +1,711 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Cuemath Travel Request</title>
+<script src="https://accounts.google.com/gsi/client" async defer></script>
+<style>
+*{margin:0;padding:0;box-sizing:border-box}
+:root{--bg:#0D0D0D;--bg2:#1A1A1A;--bg3:#242424;--border:#333;--text:#E8E8E8;--muted:#888;--accent:#FFBA07;--accent2:#E5A800;--success:#22C55E;--danger:#EF4444;--info:#3B82F6;--warn:#F59E0B}
+body{font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',Roboto,sans-serif;background:var(--bg);color:var(--text);line-height:1.5;min-height:100vh}
+a{color:var(--accent);text-decoration:none}
+
+/* ── Header ── */
+.header{background:var(--bg2);border-bottom:1px solid var(--border);padding:16px 24px;display:flex;align-items:center;justify-content:space-between;position:sticky;top:0;z-index:100}
+.logo{font-size:1.1rem;font-weight:700;color:var(--accent)}
+.logo span{color:var(--text);font-weight:400;margin-left:8px;font-size:.9rem}
+.user-info{display:flex;align-items:center;gap:12px;font-size:.85rem;color:var(--muted)}
+.user-name{color:var(--text);font-weight:500}
+.sign-out{cursor:pointer;color:var(--muted);font-size:.8rem;padding:4px 10px;border:1px solid var(--border);border-radius:4px}
+.sign-out:hover{color:var(--text);border-color:var(--muted)}
+
+/* ── Auth Screen ── */
+.auth-screen{display:flex;flex-direction:column;align-items:center;justify-content:center;min-height:80vh;gap:24px}
+.auth-title{font-size:1.8rem;font-weight:700;color:var(--accent)}
+.auth-subtitle{color:var(--muted);font-size:.95rem;max-width:400px;text-align:center}
+
+/* ── Tabs ── */
+.tabs{display:flex;gap:0;background:var(--bg2);border-bottom:1px solid var(--border);padding:0 24px}
+.tab{padding:12px 20px;font-size:.85rem;color:var(--muted);cursor:pointer;border-bottom:2px solid transparent;transition:.2s}
+.tab:hover{color:var(--text)}
+.tab.active{color:var(--accent);border-bottom-color:var(--accent)}
+.tab-panel{display:none;padding:24px;max-width:900px;margin:0 auto}
+.tab-panel.active{display:block}
+
+/* ── Forms ── */
+.form-section{margin-bottom:20px}
+.form-section h3{font-size:.9rem;color:var(--accent);margin-bottom:12px;text-transform:uppercase;letter-spacing:.5px}
+.form-row{display:grid;grid-template-columns:1fr 1fr;gap:16px;margin-bottom:16px}
+.form-group{display:flex;flex-direction:column;gap:4px}
+.form-group.full{grid-column:1/-1}
+label{font-size:.8rem;color:var(--muted);font-weight:500}
+input,select,textarea{background:var(--bg3);border:1px solid var(--border);color:var(--text);padding:10px 12px;border-radius:6px;font-size:.88rem;outline:none;transition:.2s}
+input:focus,select:focus,textarea:focus{border-color:var(--accent)}
+textarea{resize:vertical;min-height:80px}
+.radio-row{display:flex;gap:12px}
+.radio-label{display:flex;align-items:center;gap:6px;cursor:pointer;padding:8px 16px;border:1px solid var(--border);border-radius:6px;font-size:.85rem;transition:.2s}
+.radio-label:has(input:checked){border-color:var(--accent);background:rgba(255,186,7,.08)}
+.radio-label input{display:none}
+
+/* ── Budget Panel ── */
+.budget-panel{background:var(--bg2);border:1px solid var(--border);border-radius:8px;padding:16px;margin-top:16px}
+.budget-panel h4{font-size:.85rem;color:var(--accent);margin-bottom:12px}
+.budget-line{display:flex;justify-content:space-between;padding:6px 0;font-size:.84rem;border-bottom:1px solid var(--bg3)}
+.budget-line:last-of-type{border-bottom:none}
+.budget-line-label{color:var(--muted)}
+.budget-line-value{font-weight:600;font-variant-numeric:tabular-nums}
+.budget-total{display:flex;justify-content:space-between;padding:10px 0 0;margin-top:8px;border-top:1px solid var(--accent);font-weight:700;font-size:.95rem}
+.budget-total-value{color:var(--accent)}
+
+/* ── Buttons ── */
+.btn{padding:10px 24px;border-radius:6px;font-size:.88rem;font-weight:600;cursor:pointer;border:none;transition:.2s}
+.btn-primary{background:var(--accent);color:#000}
+.btn-primary:hover{background:var(--accent2)}
+.btn-primary:disabled{opacity:.5;cursor:not-allowed}
+.btn-outline{background:transparent;color:var(--text);border:1px solid var(--border)}
+.btn-outline:hover{border-color:var(--muted)}
+
+/* ── Request Cards ── */
+.request-card{background:var(--bg2);border:1px solid var(--border);border-radius:8px;padding:20px;margin-bottom:16px}
+.request-header{display:flex;justify-content:space-between;align-items:flex-start;margin-bottom:12px}
+.request-id{font-size:.8rem;color:var(--muted);font-family:monospace}
+.request-dest{font-size:1.05rem;font-weight:600}
+.request-meta{display:flex;gap:16px;font-size:.82rem;color:var(--muted);margin-bottom:16px;flex-wrap:wrap}
+
+/* ── Status Badge ── */
+.badge{display:inline-block;padding:3px 10px;border-radius:12px;font-size:.75rem;font-weight:600;text-transform:uppercase;letter-spacing:.3px}
+.badge-submitted{background:rgba(59,130,246,.15);color:var(--info)}
+.badge-approved{background:rgba(34,197,94,.15);color:var(--success)}
+.badge-rejected{background:rgba(239,68,68,.15);color:var(--danger)}
+.badge-pending{background:rgba(245,158,11,.15);color:var(--warn)}
+.badge-confirmed{background:rgba(34,197,94,.15);color:var(--success)}
+.badge-domestic{background:rgba(255,186,7,.1);color:var(--accent)}
+.badge-international{background:rgba(139,92,246,.15);color:#A78BFA}
+
+/* ── Approval Stepper ── */
+.stepper{display:flex;align-items:center;gap:0;margin:16px 0}
+.step{display:flex;flex-direction:column;align-items:center;flex:1;position:relative}
+.step-dot{width:28px;height:28px;border-radius:50%;border:2px solid var(--border);display:flex;align-items:center;justify-content:center;font-size:.7rem;font-weight:700;background:var(--bg);z-index:1;transition:.3s}
+.step.done .step-dot{background:var(--success);border-color:var(--success);color:#fff}
+.step.active .step-dot{background:var(--accent);border-color:var(--accent);color:#000}
+.step.rejected .step-dot{background:var(--danger);border-color:var(--danger);color:#fff}
+.step-label{font-size:.68rem;color:var(--muted);margin-top:6px;text-align:center;max-width:80px}
+.step.done .step-label{color:var(--success)}
+.step.active .step-label{color:var(--accent)}
+.step.rejected .step-label{color:var(--danger)}
+.step-line{flex:1;height:2px;background:var(--border);margin:0 -8px;margin-top:-14px;z-index:0}
+.step-line.done{background:var(--success)}
+
+/* ── Policy Tables ── */
+.policy-section{margin-bottom:32px}
+.policy-section h3{font-size:.95rem;color:var(--accent);margin-bottom:12px}
+.policy-table{width:100%;border-collapse:collapse;font-size:.84rem}
+.policy-table th{text-align:left;padding:8px 12px;background:var(--bg3);color:var(--muted);font-weight:600;font-size:.78rem;text-transform:uppercase;letter-spacing:.3px}
+.policy-table td{padding:8px 12px;border-bottom:1px solid var(--bg3)}
+.policy-table .amount{text-align:right;font-variant-numeric:tabular-nums;font-weight:500}
+.policy-note{font-size:.8rem;color:var(--muted);margin-top:8px}
+
+/* ── Empty State ── */
+.empty{text-align:center;padding:48px;color:var(--muted)}
+.empty-icon{font-size:2rem;margin-bottom:8px}
+
+/* ── Toast ── */
+.toast{position:fixed;bottom:24px;left:50%;transform:translateX(-50%) translateY(80px);background:var(--bg2);border:1px solid var(--border);color:var(--text);padding:12px 24px;border-radius:8px;font-size:.85rem;opacity:0;transition:.3s;z-index:999}
+.toast.show{opacity:1;transform:translateX(-50%) translateY(0)}
+.toast.error{border-color:var(--danger);color:var(--danger)}
+.toast.success{border-color:var(--success)}
+
+/* ── Success State ── */
+.success-state{text-align:center;padding:60px 24px}
+.success-icon{width:64px;height:64px;background:var(--success);border-radius:50%;display:inline-flex;align-items:center;justify-content:center;font-size:1.8rem;margin-bottom:16px}
+.success-state h2{font-size:1.3rem;margin-bottom:8px}
+.success-state p{color:var(--muted);margin-bottom:4px}
+.success-id{font-family:monospace;color:var(--accent);font-size:1.1rem;font-weight:600}
+
+/* ── Responsive ── */
+@media(max-width:600px){
+  .form-row{grid-template-columns:1fr}
+  .header{padding:12px 16px}
+  .tabs{padding:0 12px;overflow-x:auto}
+  .tab{padding:10px 14px;white-space:nowrap}
+  .tab-panel{padding:16px}
+  .stepper{flex-wrap:wrap;gap:4px}
+}
+</style>
+</head>
+<body>
+
+<!-- ══════ AUTH SCREEN ══════ -->
+<div id="auth-screen" class="auth-screen">
+  <div class="auth-title">Cuemath Travel</div>
+  <div class="auth-subtitle">Sign in with your Cuemath account to submit travel requests and track approvals.</div>
+  <div id="g_id_onload"
+    data-client_id="{{GOOGLE_CLIENT_ID}}"
+    data-callback="handleCredentialResponse"
+    data-auto_prompt="false">
+  </div>
+  <div class="g_id_signin" data-type="standard" data-size="large" data-theme="filled_black" data-text="sign_in_with" data-shape="rectangular"></div>
+</div>
+
+<!-- ══════ MAIN APP ══════ -->
+<div id="main-app" style="display:none">
+  <div class="header">
+    <div class="logo">Cuemath <span>Travel Portal</span></div>
+    <div class="user-info">
+      <span class="user-name" id="user-name"></span>
+      <span class="sign-out" onclick="signOut()">Sign Out</span>
+    </div>
+  </div>
+
+  <div class="tabs">
+    <div class="tab active" data-tab="new-request">New Request</div>
+    <div class="tab" data-tab="my-requests">My Requests</div>
+    <div class="tab" data-tab="policy">Policy & Rates</div>
+  </div>
+
+  <!-- ── NEW REQUEST ── -->
+  <div class="tab-panel active" id="panel-new-request">
+    <div id="request-form-area">
+      <form id="travel-form" onsubmit="return submitRequest(event)">
+        <div class="form-section">
+          <h3>Trip Details</h3>
+          <div class="form-row">
+            <div class="form-group">
+              <label>Your Band</label>
+              <select id="f-band" required>
+                <option value="">Select band</option>
+                <option value="E1">E1 - IC</option>
+                <option value="E2">E2 - Senior IC / Lead</option>
+                <option value="M1">M1 - Manager / SM</option>
+                <option value="M2">M2 - AD / Director / SD</option>
+                <option value="L1">L1 - VP / SVP / CXO / FH</option>
+                <option value="L2">L2 - CEO / Founder</option>
+              </select>
+            </div>
+            <div class="form-group">
+              <label>Travel Type</label>
+              <div class="radio-row">
+                <label class="radio-label"><input type="radio" name="travel_type" value="Domestic" checked onchange="toggleIntl()"> Domestic</label>
+                <label class="radio-label"><input type="radio" name="travel_type" value="International" onchange="toggleIntl()"> International</label>
+              </div>
+            </div>
+          </div>
+          <div class="form-row">
+            <div class="form-group">
+              <label>Destination City</label>
+              <input type="text" id="f-city" placeholder="e.g. Mumbai, Singapore" required>
+            </div>
+            <div class="form-group" id="country-group" style="display:none">
+              <label>Country</label>
+              <input type="text" id="f-country" placeholder="e.g. UAE, USA">
+            </div>
+          </div>
+          <div class="form-row">
+            <div class="form-group">
+              <label>Start Date</label>
+              <input type="date" id="f-start" required>
+            </div>
+            <div class="form-group">
+              <label>End Date</label>
+              <input type="date" id="f-end" required>
+            </div>
+          </div>
+        </div>
+
+        <div class="form-section">
+          <h3>Purpose & Approvals</h3>
+          <div class="form-row">
+            <div class="form-group full">
+              <label>Purpose of Travel</label>
+              <textarea id="f-purpose" placeholder="Client meeting, conference, offsite, training..." required></textarea>
+            </div>
+          </div>
+          <div class="form-row">
+            <div class="form-group full">
+              <label>Meetings / Events (optional)</label>
+              <textarea id="f-meetings" placeholder="List key meetings or events during the trip..." style="min-height:60px"></textarea>
+            </div>
+          </div>
+          <div class="form-row">
+            <div class="form-group">
+              <label>Manager's Email</label>
+              <input type="email" id="f-manager" placeholder="manager@cuemath.com">
+            </div>
+          </div>
+        </div>
+
+        <div class="budget-panel" id="budget-panel">
+          <h4>Estimated Budget</h4>
+          <div id="budget-breakdown"><p style="color:var(--muted);font-size:.84rem">Fill in details to see estimate</p></div>
+        </div>
+
+        <div style="margin-top:20px;display:flex;gap:12px;justify-content:flex-end">
+          <button type="submit" class="btn btn-primary" id="submit-btn">Submit Travel Request</button>
+        </div>
+        <div id="form-error" style="color:var(--danger);font-size:.84rem;margin-top:8px;text-align:right;display:none"></div>
+      </form>
+    </div>
+
+    <div id="success-area" style="display:none" class="success-state">
+      <div class="success-icon">&#10003;</div>
+      <h2>Request Submitted</h2>
+      <p>Your travel request has been submitted for approval.</p>
+      <p class="success-id" id="success-id"></p>
+      <p style="color:var(--muted);margin-top:16px;font-size:.85rem">You'll be notified when your manager approves. Track status in "My Requests" tab.</p>
+      <button class="btn btn-outline" style="margin-top:20px" onclick="resetForm()">Submit Another</button>
+    </div>
+  </div>
+
+  <!-- ── MY REQUESTS ── -->
+  <div class="tab-panel" id="panel-my-requests">
+    <div id="requests-loading" style="text-align:center;padding:40px;color:var(--muted)">Loading your requests...</div>
+    <div id="requests-list"></div>
+    <div id="requests-empty" class="empty" style="display:none">
+      <div class="empty-icon">&#9992;</div>
+      <p>No travel requests yet. Submit one from the "New Request" tab.</p>
+    </div>
+  </div>
+
+  <!-- ── POLICY & RATES ── -->
+  <div class="tab-panel" id="panel-policy">
+
+    <div class="policy-section">
+      <h3>Flight Entitlements</h3>
+      <table class="policy-table">
+        <thead><tr><th>Band</th><th>Domestic</th><th>International</th></tr></thead>
+        <tbody>
+          <tr><td>E1/E2</td><td>Economy</td><td>Economy / PE (> 4 hrs)</td></tr>
+          <tr><td>M1</td><td>Economy</td><td>Economy / PE (> 4 hrs)</td></tr>
+          <tr><td>M2</td><td>Economy</td><td>Economy / PE (> 4 hrs)</td></tr>
+          <tr><td>L1 (CXO/FH)</td><td>Economy</td><td>Premium Economy</td></tr>
+          <tr><td>L2 (CEO)</td><td>Business / PE</td><td>Business</td></tr>
+        </tbody>
+      </table>
+      <p class="policy-note">All domestic flights booked via admin only. Lowest fare, direct preferred. Upgrades borne by employee.</p>
+    </div>
+
+    <div class="policy-section">
+      <h3>Hotel Limits (Per Night, Excl. Taxes, INR)</h3>
+      <table class="policy-table">
+        <thead><tr><th>Band</th><th>Metro (Tier 1)</th><th>State Capitals (Tier 2)</th><th>Other Cities</th></tr></thead>
+        <tbody>
+          <tr><td>E1/E2</td><td class="amount">3,000</td><td class="amount">2,000</td><td class="amount">1,500</td></tr>
+          <tr><td>M1</td><td class="amount">3,000</td><td class="amount">2,000</td><td class="amount">1,500</td></tr>
+          <tr><td>M2</td><td class="amount">4,000</td><td class="amount">3,000</td><td class="amount">2,500</td></tr>
+          <tr><td>L1</td><td class="amount">10,000</td><td class="amount">6,500</td><td class="amount">5,500</td></tr>
+          <tr><td>L2</td><td class="amount">Actual</td><td class="amount">Actual</td><td class="amount">Actual</td></tr>
+        </tbody>
+      </table>
+      <p class="policy-note">Metro: NCR, Mumbai, Bengaluru, Kolkata, Hyderabad, Pune, Ahmedabad, Chennai. Self-booking cap: INR 2,500/night.</p>
+    </div>
+
+    <div class="policy-section">
+      <h3>Domestic Daily Limits (Per Day, INR, Bills Required)</h3>
+      <table class="policy-table">
+        <thead><tr><th>Band</th><th>Food Expenses</th><th>Other Expenses</th><th>Total/Day</th></tr></thead>
+        <tbody>
+          <tr><td>E1/E2</td><td class="amount">2,000</td><td class="amount">300</td><td class="amount">2,300</td></tr>
+          <tr><td>M1</td><td class="amount">2,000</td><td class="amount">300</td><td class="amount">2,300</td></tr>
+          <tr><td>M2</td><td class="amount">2,000</td><td class="amount">400</td><td class="amount">2,400</td></tr>
+          <tr><td>L1 (AVP/VP/SVP)</td><td class="amount">3,500</td><td class="amount">500</td><td class="amount">4,000</td></tr>
+          <tr><td>L1 (CXO/FH) / L2</td><td class="amount">Actual</td><td class="amount">Actual</td><td class="amount">Actual</td></tr>
+        </tbody>
+      </table>
+      <p class="policy-note">Alcohol and cigarettes strictly not reimbursable.</p>
+    </div>
+
+    <div class="policy-section">
+      <h3>International Per Diem (Per Day, USD, Bills Required)</h3>
+      <table class="policy-table">
+        <thead><tr><th>Region</th><th>E1 - L1 (All)</th><th>L2</th></tr></thead>
+        <tbody>
+          <tr><td>South Asia (Bangladesh, Sri Lanka, Nepal)</td><td class="amount">$50</td><td class="amount">Actual</td></tr>
+          <tr><td>SE Asia (Singapore, Thailand, Vietnam, Malaysia)</td><td class="amount">$75</td><td class="amount">Actual</td></tr>
+          <tr><td>UAE / Middle East</td><td class="amount">$100</td><td class="amount">Actual</td></tr>
+          <tr><td>East Asia (Japan, Korea, China, HK)</td><td class="amount">$125</td><td class="amount">Actual</td></tr>
+          <tr><td>USA / UK / Europe / Australia / NZ</td><td class="amount">$150</td><td class="amount">Actual</td></tr>
+        </tbody>
+      </table>
+      <p class="policy-note">Covers meals + local transport + all other expenses. Travel days = 50%.</p>
+    </div>
+
+    <div class="policy-section">
+      <h3>Key Rules</h3>
+      <table class="policy-table">
+        <thead><tr><th>Rule</th><th>Detail</th></tr></thead>
+        <tbody>
+          <tr><td>Advance notice (domestic)</td><td>1 week for all bands</td></tr>
+          <tr><td>Advance notice (international)</td><td>15 days (E1-E2), 10 days (M1-M2), 7 days (L1)</td></tr>
+          <tr><td>Expense submission</td><td>5 working days after return. All bills required.</td></tr>
+          <tr><td>Hotel booking advance</td><td>72 hours (domestic), 15 days (international)</td></tr>
+          <tr><td>Visa processing</td><td>Start 21+ days before departure</td></tr>
+          <tr><td>Exception authority</td><td>Jagjit Khurma (via HR/CFO recommendation)</td></tr>
+          <tr><td>Violations</td><td>Disciplinary action, corporate card suspension, payroll recovery</td></tr>
+        </tbody>
+      </table>
+    </div>
+
+    <div class="policy-section">
+      <h3>Contacts</h3>
+      <table class="policy-table">
+        <thead><tr><th>Need</th><th>Contact</th></tr></thead>
+        <tbody>
+          <tr><td>Travel Desk / Booking</td><td>Ravindra -- ravindra.rajput@cuemath.com</td></tr>
+          <tr><td>Policy Questions</td><td>Akash -- akash.sharma@cuemath.com</td></tr>
+          <tr><td>Reimbursements</td><td>Finance -- finance@cuemath.com</td></tr>
+          <tr><td>Visa (India)</td><td>Visawala -- mridusmita@visawala.co.in</td></tr>
+          <tr><td>Visa (US)</td><td>Bay Area Immigration -- kritagya@bayareaimmigrationservices.com</td></tr>
+        </tbody>
+      </table>
+    </div>
+  </div>
+</div>
+
+<div class="toast" id="toast"></div>
+
+<script>
+// ── State ──
+let USER = null;
+let CREDENTIAL = null;
+
+// ── Auth ──
+function handleCredentialResponse(response) {
+  CREDENTIAL = response.credential;
+  fetch('/api/verify-token', {
+    method: 'POST',
+    headers: {'Content-Type': 'application/json'},
+    body: JSON.stringify({credential: CREDENTIAL})
+  })
+  .then(r => r.json())
+  .then(data => {
+    if (data.ok) {
+      USER = {name: data.name, email: data.email};
+      document.getElementById('auth-screen').style.display = 'none';
+      document.getElementById('main-app').style.display = '';
+      document.getElementById('user-name').textContent = data.name;
+      loadMyRequests();
+    } else {
+      showToast(data.error || 'Sign-in failed', true);
+    }
+  })
+  .catch(() => showToast('Sign-in failed', true));
+}
+
+function signOut() {
+  USER = null; CREDENTIAL = null;
+  document.getElementById('auth-screen').style.display = '';
+  document.getElementById('main-app').style.display = 'none';
+}
+
+// ── Tabs ──
+document.querySelectorAll('.tab').forEach(tab => {
+  tab.addEventListener('click', () => {
+    document.querySelectorAll('.tab').forEach(t => t.classList.remove('active'));
+    document.querySelectorAll('.tab-panel').forEach(p => p.classList.remove('active'));
+    tab.classList.add('active');
+    document.getElementById('panel-' + tab.dataset.tab).classList.add('active');
+    if (tab.dataset.tab === 'my-requests') loadMyRequests();
+  });
+});
+
+// ── Toggle International ──
+function toggleIntl() {
+  const isIntl = document.querySelector('input[name="travel_type"]:checked').value === 'International';
+  document.getElementById('country-group').style.display = isIntl ? '' : 'none';
+  updateBudget();
+}
+
+// ── Budget Calculator ──
+const METRO = ['mumbai','delhi','delhi ncr','new delhi','gurgaon','noida','bangalore','bengaluru','kolkata','hyderabad','pune','ahmedabad','chennai'];
+const STATE_CAP = ['lucknow','jaipur','bhopal','patna','chandigarh','thiruvananthapuram','trivandrum','bhubaneswar','dehradun','shimla','gangtok','imphal','shillong','aizawl','kohima','itanagar','agartala','dispur','guwahati','ranchi','raipur','panaji','gandhinagar','srinagar','jammu'];
+
+const H_METRO = {E1:3000,E2:3000,M1:3000,M2:4000,L1:10000,L2:15000};
+const H_NONMETRO = {E1:2000,E2:2000,M1:2000,M2:3000,L1:6500,L2:10000};
+const H_OTHER = {E1:1500,E2:1500,M1:1500,M2:2500,L1:5500,L2:8000};
+const FOOD = {E1:2000,E2:2000,M1:2000,M2:2000,L1:3500,L2:5000};
+const OTHER = {E1:300,E2:300,M1:300,M2:400,L1:500,L2:500};
+const FLIGHT_D = {E1:6000,E2:6000,M1:6000,M2:6000,L1:6000,L2:15000};
+const USD = 84;
+
+const COUNTRY_PD = {
+  'bangladesh':50,'sri lanka':50,'nepal':50,
+  'singapore':75,'thailand':75,'vietnam':75,'malaysia':75,'indonesia':75,
+  'uae':100,'saudi arabia':100,'qatar':100,'bahrain':100,'oman':100,'kuwait':100,
+  'japan':125,'south korea':125,'china':125,'hong kong':125,'taiwan':125,
+  'usa':150,'uk':150,'canada':150,'australia':150,'new zealand':150,
+  'germany':150,'france':150,'netherlands':150,'spain':150,'italy':150,'switzerland':150
+};
+const INTL_FLIGHT = {
+  50:15000, 75:25000, 100:20000, 125:35000, 150:55000
+};
+
+function updateBudget() {
+  const band = document.getElementById('f-band').value;
+  const type = document.querySelector('input[name="travel_type"]:checked').value;
+  const city = document.getElementById('f-city').value.trim();
+  const country = document.getElementById('f-country').value.trim();
+  const start = document.getElementById('f-start').value;
+  const end = document.getElementById('f-end').value;
+  if (!band || !start || !end) { document.getElementById('budget-breakdown').innerHTML = '<p style="color:var(--muted);font-size:.84rem">Fill in details to see estimate</p>'; return; }
+
+  const nights = Math.max(0, Math.round((new Date(end) - new Date(start)) / 86400000));
+  const days = nights + 1;
+  let html = '';
+
+  if (type === 'Domestic') {
+    const flight = (FLIGHT_D[band]||6000) * 2;
+    const cl = city.toLowerCase();
+    let hr = H_OTHER; if (METRO.includes(cl)) hr = H_METRO; else if (STATE_CAP.includes(cl)) hr = H_NONMETRO;
+    const hotel = (hr[band]||1500) * nights;
+    const food = (FOOD[band]||2000) * days;
+    const other = (OTHER[band]||300) * days;
+    const conv = 1500 * days;
+    const total = flight + hotel + food + other + conv;
+    html += line('Flight (return, Economy)', flight);
+    html += line('Hotel (' + nights + ' nights)', hotel);
+    html += line('Food Expenses (' + days + ' days)', food);
+    html += line('Other Expenses (' + days + ' days)', other);
+    html += line('Local Conveyance (est.)', conv);
+    html += total_line(total);
+    document.getElementById('budget-breakdown').dataset.total = total;
+  } else {
+    const pdRate = COUNTRY_PD[(country||'').toLowerCase()] || 100;
+    const flightEst = (band==='L2'?160000 : band==='L1'? (INTL_FLIGHT[pdRate]||25000)*1.8 : INTL_FLIGHT[pdRate]||25000);
+    const hotelUSD = ({E1:100,E2:100,M1:100,M2:150,L1:200,L2:300})[band]||100;
+    const hotel = hotelUSD * nights * USD;
+    const pd = (band==='L2'? 200 : pdRate) * days * USD;
+    const visa = 5000;
+    const ins = nights > 7 ? 3000 : 1500;
+    const total = Math.round(flightEst) + hotel + pd + visa + ins;
+    html += line('Flight (round-trip)', Math.round(flightEst));
+    html += line('Hotel (admin est., ' + nights + ' nights)', hotel);
+    html += line('Per Diem (' + days + ' days, $' + (band==='L2'?200:pdRate) + '/day)', pd);
+    html += line('Visa (est.)', visa);
+    html += line('Insurance', ins);
+    html += total_line(total);
+    document.getElementById('budget-breakdown').dataset.total = total;
+  }
+  document.getElementById('budget-breakdown').innerHTML = html;
+}
+
+function line(label, val) {
+  return '<div class="budget-line"><span class="budget-line-label">' + label + '</span><span class="budget-line-value">INR ' + fmt(Math.round(val)) + '</span></div>';
+}
+function total_line(val) {
+  return '<div class="budget-total"><span>Total Estimate</span><span class="budget-total-value">INR ' + fmt(Math.round(val)) + '</span></div>';
+}
+function fmt(n) { return n.toLocaleString('en-IN'); }
+
+['f-band','f-city','f-country','f-start','f-end'].forEach(id => {
+  const el = document.getElementById(id);
+  if (el) { el.addEventListener('change', updateBudget); el.addEventListener('input', updateBudget); }
+});
+document.querySelectorAll('input[name="travel_type"]').forEach(r => r.addEventListener('change', updateBudget));
+
+// ── Submit ──
+async function submitRequest(e) {
+  e.preventDefault();
+  const errEl = document.getElementById('form-error');
+  errEl.style.display = 'none';
+
+  const data = {
+    credential: CREDENTIAL,
+    band: document.getElementById('f-band').value,
+    travel_type: document.querySelector('input[name="travel_type"]:checked').value,
+    destination_city: document.getElementById('f-city').value.trim(),
+    destination_country: document.getElementById('f-country').value.trim(),
+    start_date: document.getElementById('f-start').value,
+    end_date: document.getElementById('f-end').value,
+    purpose: document.getElementById('f-purpose').value.trim(),
+    meetings: document.getElementById('f-meetings').value.trim(),
+    manager_email: document.getElementById('f-manager').value.trim(),
+    budget_estimate: document.getElementById('budget-breakdown').dataset.total || '',
+  };
+
+  if (!data.destination_city || !data.start_date || !data.end_date || !data.purpose) {
+    errEl.textContent = 'Please fill all required fields.'; errEl.style.display = ''; return false;
+  }
+  if (data.end_date < data.start_date) {
+    errEl.textContent = 'End date must be after start date.'; errEl.style.display = ''; return false;
+  }
+
+  document.getElementById('submit-btn').disabled = true;
+  try {
+    const resp = await fetch('/api/submit-request', {
+      method: 'POST', headers: {'Content-Type': 'application/json'}, body: JSON.stringify(data)
+    });
+    const result = await resp.json();
+    if (result.ok) {
+      document.getElementById('request-form-area').style.display = 'none';
+      document.getElementById('success-area').style.display = '';
+      document.getElementById('success-id').textContent = result.requestId;
+    } else {
+      errEl.textContent = result.error || 'Submission failed.'; errEl.style.display = '';
+    }
+  } catch(err) {
+    errEl.textContent = 'Network error. Try again.'; errEl.style.display = '';
+  }
+  document.getElementById('submit-btn').disabled = false;
+  return false;
+}
+
+function resetForm() {
+  document.getElementById('travel-form').reset();
+  document.getElementById('request-form-area').style.display = '';
+  document.getElementById('success-area').style.display = 'none';
+  document.getElementById('budget-breakdown').innerHTML = '<p style="color:var(--muted);font-size:.84rem">Fill in details to see estimate</p>';
+  toggleIntl();
+}
+
+// ── My Requests ──
+async function loadMyRequests() {
+  if (!CREDENTIAL) return;
+  document.getElementById('requests-loading').style.display = '';
+  document.getElementById('requests-list').innerHTML = '';
+  document.getElementById('requests-empty').style.display = 'none';
+
+  try {
+    const resp = await fetch('/api/my-requests', {
+      method: 'POST', headers: {'Content-Type': 'application/json'},
+      body: JSON.stringify({credential: CREDENTIAL})
+    });
+    const data = await resp.json();
+    document.getElementById('requests-loading').style.display = 'none';
+    if (!data.length) { document.getElementById('requests-empty').style.display = ''; return; }
+    // Sort newest first
+    data.sort((a,b) => (b.created_at||'').localeCompare(a.created_at||''));
+    document.getElementById('requests-list').innerHTML = data.map(renderRequestCard).join('');
+  } catch(err) {
+    document.getElementById('requests-loading').textContent = 'Failed to load requests.';
+  }
+}
+
+function renderRequestCard(r) {
+  const dest = r.destination_country ? r.destination_city + ', ' + r.destination_country : r.destination_city;
+  const nights = Math.max(0, Math.round((new Date(r.end_date) - new Date(r.start_date)) / 86400000));
+  const statusClass = getStatusBadgeClass(r.status);
+  const typeClass = r.travel_type === 'International' ? 'badge-international' : 'badge-domestic';
+
+  const steps = getApprovalSteps(r);
+
+  return '<div class="request-card">' +
+    '<div class="request-header">' +
+      '<div><div class="request-dest">' + esc(dest) + '</div><div class="request-id">' + esc(r.id) + '</div></div>' +
+      '<span class="badge ' + statusClass + '">' + esc(r.status) + '</span>' +
+    '</div>' +
+    '<div class="request-meta">' +
+      '<span>' + formatDate(r.start_date) + ' - ' + formatDate(r.end_date) + ' (' + nights + ' nights)</span>' +
+      '<span class="badge ' + typeClass + '">' + r.travel_type + '</span>' +
+      '<span>Band ' + r.band + '</span>' +
+      (r.budget_estimate ? '<span>Est. INR ' + fmt(parseInt(r.budget_estimate)||0) + '</span>' : '') +
+    '</div>' +
+    '<div style="font-size:.84rem;color:var(--muted);margin-bottom:12px">' + esc(r.purpose) + '</div>' +
+    renderStepper(steps) +
+    (r.rejected_reason ? '<div style="font-size:.82rem;color:var(--danger);margin-top:8px"><strong>Reason:</strong> ' + esc(r.rejected_reason) + '</div>' : '') +
+    (r.admin_notes ? '<div style="font-size:.82rem;color:var(--muted);margin-top:4px"><strong>Admin:</strong> ' + esc(r.admin_notes) + '</div>' : '') +
+    (r.approved_by ? '<div style="font-size:.82rem;color:var(--success);margin-top:4px">Approved by: ' + esc(r.approved_by) + '</div>' : '') +
+  '</div>';
+}
+
+function getApprovalSteps(r) {
+  const isIntl = r.travel_type === 'International';
+  const band = r.band || 'E1';
+  const status = (r.status || '').toLowerCase();
+  const step = (r.current_step || '').toLowerCase();
+
+  let steps = [];
+  if (isIntl) {
+    steps = [
+      {label: 'Submitted', key: 'submitted'},
+      {label: 'Manager', key: 'manager'},
+      {label: 'Dept Head', key: 'dept_head'},
+    ];
+    if (['e1','e2','m1'].includes(band.toLowerCase())) {
+      steps.push({label: "CEO's Office", key: 'ceo_office'});
+    }
+    steps.push({label: 'Admin Booking', key: 'admin'});
+    steps.push({label: 'Confirmed', key: 'confirmed'});
+  } else {
+    steps = [
+      {label: 'Submitted', key: 'submitted'},
+      {label: 'Manager / FH', key: 'manager'},
+      {label: 'Admin Booking', key: 'admin'},
+      {label: 'Confirmed', key: 'confirmed'},
+    ];
+  }
+
+  // Mark steps based on status
+  if (status === 'rejected') {
+    steps[0].state = 'done';
+    for (let i = 1; i < steps.length; i++) {
+      if (step.includes(steps[i].key) || step.includes(steps[i].label.toLowerCase())) {
+        steps[i].state = 'rejected'; break;
+      }
+    }
+    // If no step matched, mark second step as rejected
+    if (!steps.find(s => s.state === 'rejected')) steps[1].state = 'rejected';
+  } else if (status === 'confirmed' || status === 'approved') {
+    steps.forEach(s => s.state = 'done');
+  } else {
+    // Find current step
+    steps[0].state = 'done'; // submitted is always done
+    let found = false;
+    for (let i = 1; i < steps.length; i++) {
+      if (!found && (step.includes('manager') && steps[i].key === 'manager')) { steps[i].state = 'active'; found = true; }
+      else if (!found && (step.includes('dept') && steps[i].key === 'dept_head')) { steps[i].state = 'active'; found = true; }
+      else if (!found && (step.includes('ceo') && steps[i].key === 'ceo_office')) { steps[i].state = 'active'; found = true; }
+      else if (!found && (step.includes('admin') && steps[i].key === 'admin')) { steps[i].state = 'active'; found = true; }
+      else if (!found && (step.includes('confirmed') && steps[i].key === 'confirmed')) { steps[i].state = 'done'; found = true; }
+      else if (found) { /* future steps, no state */ }
+      else { steps[i].state = 'done'; } // steps before active are done
+    }
+    if (!found && steps.length > 1) steps[1].state = 'active';
+  }
+
+  return steps;
+}
+
+function renderStepper(steps) {
+  let html = '<div class="stepper">';
+  steps.forEach((s, i) => {
+    const cls = s.state || '';
+    const icon = cls === 'done' ? '&#10003;' : cls === 'rejected' ? '&#10007;' : (i + 1);
+    html += '<div class="step ' + cls + '"><div class="step-dot">' + icon + '</div><div class="step-label">' + s.label + '</div></div>';
+    if (i < steps.length - 1) {
+      const lineClass = (s.state === 'done') ? 'done' : '';
+      html += '<div class="step-line ' + lineClass + '"></div>';
+    }
+  });
+  html += '</div>';
+  return html;
+}
+
+function getStatusBadgeClass(status) {
+  const s = (status||'').toLowerCase();
+  if (s === 'submitted') return 'badge-submitted';
+  if (s === 'approved' || s === 'confirmed') return 'badge-approved';
+  if (s === 'rejected') return 'badge-rejected';
+  return 'badge-pending';
+}
+
+function formatDate(d) {
+  if (!d) return '';
+  return new Date(d + 'T00:00:00').toLocaleDateString('en-IN', {day:'numeric',month:'short',year:'numeric'});
+}
+
+function esc(s) {
+  if (!s) return '';
+  return s.replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;');
+}
+
+function showToast(msg, isError) {
+  const t = document.getElementById('toast');
+  t.textContent = msg;
+  t.className = 'toast' + (isError ? ' error' : ' success');
+  requestAnimationFrame(() => t.classList.add('show'));
+  setTimeout(() => t.classList.remove('show'), 3000);
+}
+</script>
+</body>
+</html>

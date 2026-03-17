@@ -1,0 +1,21 @@
+services:
+  - type: web
+    name: cuemath-travel-request
+    runtime: python
+    buildCommand: pip install -r requirements.txt
+    startCommand: gunicorn travel_request_server:app --bind 0.0.0.0:$PORT
+    envVars:
+      - key: GOOGLE_CLIENT_ID
+        sync: false
+      - key: SA_PRIVATE_KEY
+        sync: false
+      - key: SHEET_ID
+        sync: false
+      - key: ALLOWED_DOMAIN
+        value: cuemath.com
+      - key: SLACK_USER_TOKEN
+        sync: false
+      - key: SLACK_USER_ID
+        value: U039LUDJ6FP
+      - key: REVIEW_URL
+        value: http://localhost:8083
